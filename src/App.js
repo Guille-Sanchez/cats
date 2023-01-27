@@ -1,24 +1,63 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
+  const [randomCatFact, setRandomCatFact] = useState("");
+  const [catsImage, setCatsImage] = useState("");
+
+  function getPhrase() {
+    const CATSFACTSAPI =
+      "https://cat-fact.herokuapp.com/facts/random?animal_type=cat&amount=1";
+    let subscribed = true;
+    if (subscribed) {
+      fetch(CATSFACTSAPI)
+        .then((response) => response.json())
+        .then((data) => {
+          let fact = data.text;
+          setRandomCatFact(() => data.text);
+          const CATSIMAGEAPI = `https://cataas.com/cat/says/${fact
+            .split(" ", 3)
+            .join(" ")}`;
+          fetch(`${CATSIMAGEAPI}`)
+            .then((response) => response)
+            .then((data) => {
+              setCatsImage(data.url);
+            });
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+    return () => {
+      subscribed = false;
+    };
+  }
+
+  useEffect(() => {
+    getPhrase();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <main>
+      <div className="App">
+        {randomCatFact && <h1>{randomCatFact}</h1>}
+        {catsImage && (
+          <img
+            className="cat-image"
+            src={catsImage}
+            alt="Random cat which displays the first three words of a random phrase"
+          />
+        )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            getPhrase();
+          }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          Click to get a new fact
+        </button>
+      </div>
+    </main>
   );
 }
 
